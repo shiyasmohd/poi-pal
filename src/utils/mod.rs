@@ -4,9 +4,9 @@ use std::collections::BTreeMap;
 use crate::models::{Indexer, IndexerPOI, POIGroup};
 
 pub fn display_header(title: &str) {
-    println!("\n{}", "=".repeat(80).bright_cyan());
+    println!("\n{}", "=".repeat(100).bright_cyan());
     println!("{}", title.bright_white().bold());
-    println!("{}", "=".repeat(80).bright_cyan());
+    println!("{}", "=".repeat(100).bright_cyan());
 }
 
 pub fn display_subheader(title: &str) {
@@ -45,17 +45,69 @@ pub fn display_pois(pois: Vec<IndexerPOI>, block: u64, deployment: &str) {
         return;
     }
 
+    // Group POIs by hash
+    let mut poi_groups: BTreeMap<String, Vec<IndexerPOI>> = BTreeMap::new();
+    for poi in pois {
+        poi_groups.entry(poi.poi.clone()).or_default().push(poi);
+    }
+
+    let unique_pois = poi_groups.len();
+    let total_indexers = poi_groups.values().map(|v| v.len()).sum::<usize>();
+
     println!(
         "\n{}",
-        format!("Found {} indexers with POIs", pois.len()).bright_green()
+        format!(
+            "Found {} indexers with {} unique POI(s)",
+            total_indexers, unique_pois
+        )
+        .bright_green()
     );
 
-    for poi in pois {
-        println!("\n{}", "─".repeat(60).bright_black());
-        display_info("Indexer ID", &poi.indexer_id);
-        display_info("Indexer URL", &poi.indexer_url);
-        display_info("POI", &poi.poi);
+    // Display each POI group as a table
+    for (poi_hash, indexers) in poi_groups {
+        println!("\n{}", "═".repeat(100).bright_cyan());
+        println!(
+            "{} {}",
+            "POI Hash:".bright_yellow().bold(),
+            poi_hash.bright_white()
+        );
+        println!(
+            "{} {} indexer(s)",
+            "Count:".bright_yellow().bold(),
+            indexers.len().to_string().bright_white()
+        );
+        println!("{}", "─".repeat(100).bright_cyan());
+
+        // Table header
+        println!(
+            "{:<44} │ {}",
+            " Indexer ID".bright_blue().bold(),
+            "URL".bright_blue().bold()
+        );
+        println!("{}", "─".repeat(100).bright_black());
+
+        // Table rows
+        for indexer in indexers {
+            let truncated_id = if indexer.indexer_id.len() > 42 {
+                format!("{}...", &indexer.indexer_id[..39])
+            } else {
+                indexer.indexer_id.clone()
+            };
+
+            let truncated_url = if indexer.indexer_url.len() > 52 {
+                format!("{}...", &indexer.indexer_url[..49])
+            } else {
+                indexer.indexer_url.clone()
+            };
+
+            println!(
+                " {:<43} │ {}",
+                truncated_id.white(),
+                truncated_url.bright_black()
+            );
+        }
     }
+    println!("\n{}", "═".repeat(100).bright_cyan());
 }
 
 pub fn display_poi_groups(groups: Vec<POIGroup>, block: u64, correct_indexer_id: &str) {
