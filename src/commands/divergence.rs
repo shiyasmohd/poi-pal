@@ -3,7 +3,8 @@ use clap::Args;
 use colored::Colorize;
 use std::collections::BTreeMap;
 
-use crate::client::{check_divergence_at_block, GraphClient, POIClient};
+use crate::client::ipfs::IpfsClient;
+use crate::client::{check_divergence_at_block, poi::POIClient, subgraph::GraphClient};
 use crate::models::Indexer;
 use crate::utils::{
     display_divergence_summary, display_error, display_header, display_info, display_poi_groups,
@@ -16,25 +17,45 @@ pub struct CheckDivergenceCommand {
     deployment: String,
 
     #[arg(long, help = "Start block for binary search")]
-    start_block: u64,
+    start_block: Option<u32>,
 
     #[arg(long, help = "End block for binary search")]
-    end_block: u64,
+    end_block: u32,
 
     #[arg(long, help = "Indexer ID with correct POI", env = "TRUSTED_INDEXER")]
     indexer: String,
 
     #[arg(long, help = "API key for The Graph", env = "GRAPH_API_KEY")]
     api_key: String,
+
+    #[arg(
+        long,
+        help = "Timeout for fetching POIs",
+        default_value = "https://ipfs.thegraph.com"
+    )]
+    ipfs_url: Option<String>,
 }
 
 impl CheckDivergenceCommand {
     pub async fn execute(self) -> Result<()> {
         display_header("POI Divergence Checker");
         display_info("Deployment", &self.deployment);
+
+        let start_block = match &self.start_block {
+            Some(start_block) => start_block.clone(),
+            None => {
+                println!("\n{}", "Fetching start block from IPFS...".bright_cyan());
+                let ipfs_url = self.ipfs_url.clone().unwrap();
+                let ipfs_client = IpfsClient::new(ipfs_url)?;
+                let block = ipfs_client.get_start_block(&self.deployment).await?;
+                display_success(&format!("Fetched start block: {}", block));
+                block
+            }
+        };
+
         display_info(
             "Search Range",
-            &format!("{} → {}", self.start_block, self.end_block),
+            &format!("{} → {}", start_block, self.end_block),
         );
         display_info("Reference Indexer", &self.indexer);
 
@@ -61,16 +82,19 @@ impl CheckDivergenceCommand {
         );
         println!("{}", "─".repeat(60).bright_black());
 
-        match self.find_diverged_block(&poi_client, &indexers).await? {
+        match self
+            .find_diverged_block(&poi_client, &indexers, start_block)
+            .await?
+        {
             Some(block) => {
-                display_divergence_summary(true, Some(block), self.start_block, self.end_block);
+                display_divergence_summary(true, Some(block), start_block, self.end_block);
 
                 println!("\n{}", "Fetching POIs at diverged block...".bright_cyan());
                 self.display_pois_at_block(&poi_client, &indexers, block)
                     .await?;
             }
             None => {
-                display_divergence_summary(false, None, self.start_block, self.end_block);
+                display_divergence_summary(false, None, start_block, self.end_block);
                 display_success("All indexers have matching POIs in the specified range");
             }
         }
@@ -82,8 +106,9 @@ impl CheckDivergenceCommand {
         &self,
         poi_client: &POIClient,
         indexers: &BTreeMap<String, Indexer>,
-    ) -> Result<Option<u64>> {
-        let mut left = self.start_block;
+        start_block: u32,
+    ) -> Result<Option<u32>> {
+        let mut left = start_block;
         let mut right = self.end_block;
         let mut diverged_block = None;
 
@@ -128,7 +153,7 @@ impl CheckDivergenceCommand {
         &self,
         poi_client: &POIClient,
         indexers: &BTreeMap<String, Indexer>,
-        block: u64,
+        block: u32,
     ) -> Result<()> {
         let mut pois = Vec::new();
         let mut failed_indexers = Vec::new();

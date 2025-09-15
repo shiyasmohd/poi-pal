@@ -34,7 +34,7 @@ pub fn display_progress(message: &str) {
     print!("{} {}... ", "→".bright_cyan(), message);
 }
 
-pub fn display_pois(pois: Vec<IndexerPOI>, block: u64, deployment: &str) {
+pub fn display_pois(pois: Vec<IndexerPOI>, block: u32, deployment: &str) {
     display_header(&format!(
         "POIs for deployment {} at block {}",
         deployment, block
@@ -110,7 +110,7 @@ pub fn display_pois(pois: Vec<IndexerPOI>, block: u64, deployment: &str) {
     println!("\n{}", "═".repeat(100).bright_cyan());
 }
 
-pub fn display_poi_groups(groups: Vec<POIGroup>, block: u64, correct_indexer_id: &str) {
+pub fn display_poi_groups(groups: Vec<POIGroup>, block: u32, correct_indexer_id: &str) {
     display_subheader(&format!("POI Groups at block {}", block));
 
     for group in groups {
@@ -148,9 +148,9 @@ pub fn display_poi_groups(groups: Vec<POIGroup>, block: u64, correct_indexer_id:
 
 pub fn display_divergence_summary(
     has_divergence: bool,
-    diverged_block: Option<u64>,
-    start_block: u64,
-    end_block: u64,
+    diverged_block: Option<u32>,
+    start_block: u32,
+    end_block: u32,
 ) {
     println!();
     if has_divergence {

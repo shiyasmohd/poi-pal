@@ -2,7 +2,7 @@ use anyhow::Result;
 use clap::Args;
 use colored::Colorize;
 
-use crate::client::{GraphClient, POIClient};
+use crate::client::{poi::POIClient, subgraph::GraphClient};
 use crate::models::IndexerPOI;
 use crate::utils::{display_error, display_header, display_info, display_pois, display_success};
 
@@ -12,7 +12,7 @@ pub struct PoiCommand {
     deployment: String,
 
     #[arg(long, help = "Block number to fetch POI for")]
-    block: u64,
+    block: u32,
 
     #[arg(long, help = "API key for The Graph", env = "GRAPH_API_KEY")]
     api_key: String,
