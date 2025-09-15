@@ -21,10 +21,10 @@ pub struct CheckDivergenceCommand {
     #[arg(long, help = "End block for binary search")]
     end_block: u64,
 
-    #[arg(long, help = "Indexer ID with correct POI")]
-    correct_indexer_id: String,
+    #[arg(long, help = "Indexer ID with correct POI", env = "TRUSTED_INDEXER")]
+    indexer: String,
 
-    #[arg(long, help = "API key for The Graph")]
+    #[arg(long, help = "API key for The Graph", env = "GRAPH_API_KEY")]
     api_key: String,
 }
 
@@ -36,17 +36,17 @@ impl CheckDivergenceCommand {
             "Search Range",
             &format!("{} → {}", self.start_block, self.end_block),
         );
-        display_info("Reference Indexer", &self.correct_indexer_id);
+        display_info("Reference Indexer", &self.indexer);
 
         println!("\n{}", "Fetching active indexers...".bright_cyan());
 
         let graph_client = GraphClient::new(self.api_key.clone())?;
         let indexers = graph_client.fetch_indexers(&self.deployment).await?;
 
-        if !indexers.contains_key(&self.correct_indexer_id) {
+        if !indexers.contains_key(&self.indexer) {
             display_error(&format!(
                 "Reference indexer '{}' not found in active allocations",
-                self.correct_indexer_id
+                self.indexer
             ));
             return Err(anyhow!("Invalid reference indexer"));
         }
@@ -103,7 +103,7 @@ impl CheckDivergenceCommand {
                 indexers,
                 &self.deployment,
                 mid,
-                &self.correct_indexer_id,
+                &self.indexer,
             )
             .await?;
 
@@ -161,8 +161,8 @@ impl CheckDivergenceCommand {
             }
         }
 
-        let poi_groups = group_pois_by_hash(indexers, &pois, &self.correct_indexer_id);
-        display_poi_groups(poi_groups, block, &self.correct_indexer_id);
+        let poi_groups = group_pois_by_hash(indexers, &pois, &self.indexer);
+        display_poi_groups(poi_groups, block, &self.indexer);
 
         Ok(())
     }

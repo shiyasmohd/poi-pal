@@ -14,7 +14,7 @@ pub struct PoiCommand {
     #[arg(long, help = "Block number to fetch POI for")]
     block: u64,
 
-    #[arg(long, help = "API key for The Graph")]
+    #[arg(long, help = "API key for The Graph", env = "GRAPH_API_KEY")]
     api_key: String,
 }
 
