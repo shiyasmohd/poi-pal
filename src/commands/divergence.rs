@@ -32,7 +32,7 @@ pub struct CheckDivergenceCommand {
 
     #[arg(
         long,
-        help = "Timeout for fetching POIs",
+        help = "IPFS base URL to fetch subgraph manifest",
         default_value = "https://ipfs.thegraph.com"
     )]
     ipfs_url: String,
@@ -104,6 +104,11 @@ impl CheckDivergenceCommand {
                 self.indexer
             ));
             return Err(anyhow!("Invalid reference indexer"));
+        }
+
+        if indexers.len() == 1 && indexers.contains_key(&self.indexer) {
+            display_success("Only one active indexer found, no divergence possible");
+            return Ok(());
         }
 
         display_success(&format!("Found {} active indexers", indexers.len()));
