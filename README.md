@@ -7,7 +7,7 @@
 [![Crates.io](https://img.shields.io/crates/v/poipal?style=flat-square)](https://crates.io/crates/poipal)
 [![Crates.io](https://img.shields.io/crates/d/poipal?style=flat-square)](https://crates.io/crates/poipal)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE-MIT)
-[![Contributors](https://img.shields.io/github/contributors/shiyasmohd/poipal?style=flat-square)](https://github.com/shiyasmohd/poipal/graphs/contributors)
+[![Contributors](https://img.shields.io/github/contributors/shiyasmohd/poipal?style=flat-square)](https://github.com/shiyasmohd/poi-pal/graphs/contributors)
 
 </div>
 
