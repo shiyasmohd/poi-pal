@@ -5,6 +5,7 @@ use std::time::Duration;
 
 use crate::models::POIResponse;
 
+#[derive(Clone)]
 pub struct POIClient {
     client: Client,
 }
