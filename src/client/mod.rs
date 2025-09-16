@@ -3,8 +3,10 @@ use std::collections::BTreeMap;
 
 use crate::{client::poi::POIClient, models::Indexer};
 
+pub mod eth;
 pub mod ipfs;
 pub mod poi;
+pub mod registry;
 pub mod subgraph;
 
 pub async fn check_divergence_at_block(

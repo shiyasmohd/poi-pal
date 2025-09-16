@@ -64,3 +64,8 @@ pub struct POIGroup {
     pub indexers: BTreeMap<String, String>,
     pub is_correct: bool,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct EthBlock {
+    pub number: String,
+}
