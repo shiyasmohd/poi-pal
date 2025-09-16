@@ -18,13 +18,14 @@ pub async fn check_divergence_at_block(
     deployment: &str,
     block: u32,
     correct_indexer_id: &str,
+    max_retries: u32,
 ) -> Result<(bool, Vec<String>)> {
     let correct_indexer = indexers
         .get(correct_indexer_id)
         .ok_or_else(|| anyhow!("Correct indexer not found in active allocations"))?;
 
     let correct_poi = poi_client
-        .fetch_poi_with_retry(&correct_indexer.url, deployment, block, 3)
+        .fetch_poi_with_retry(&correct_indexer.url, deployment, block, max_retries)
         .await?;
 
     let mut tasks = JoinSet::new();
@@ -42,7 +43,7 @@ pub async fn check_divergence_at_block(
 
         tasks.spawn(async move {
             let poi_result = poi_client
-                .fetch_poi_with_retry(&url, &deployment, block, 3)
+                .fetch_poi_with_retry(&url, &deployment, block, max_retries)
                 .await;
             (id, poi_result)
         });

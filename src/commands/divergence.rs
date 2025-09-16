@@ -171,6 +171,7 @@ impl CheckDivergenceCommand {
                 &self.deployment,
                 mid,
                 &self.indexer,
+                self.max_retries,
             )
             .await?;
 

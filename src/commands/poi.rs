@@ -18,6 +18,9 @@ pub struct PoiCommand {
 
     #[arg(long, help = "API key for The Graph", env = "GRAPH_API_KEY")]
     api_key: String,
+
+    #[arg(long, help = "Max retries for fetching POIs", default_value = "3")]
+    max_retries: u32,
 }
 
 impl PoiCommand {
@@ -52,10 +55,11 @@ impl PoiCommand {
             let deployment = self.deployment.clone();
             let block = self.block;
             let poi_client = Arc::clone(&poi_client);
+            let max_retries = self.max_retries;
 
             tasks.spawn(async move {
                 let poi_result = poi_client
-                    .fetch_poi_with_retry(&url, &deployment, block, 3)
+                    .fetch_poi_with_retry(&url, &deployment, block, max_retries)
                     .await;
                 (id, url, poi_result)
             });
