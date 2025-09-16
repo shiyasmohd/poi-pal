@@ -46,7 +46,7 @@ impl CheckDivergenceCommand {
         // Fetch manifest once if we need it
         let ipfs_url = self.ipfs_url.clone().unwrap();
         let ipfs_client = IpfsClient::new(ipfs_url)?;
-        
+
         let manifest = if self.start_block.is_none() || self.end_block.is_none() {
             Some(ipfs_client.fetch_manifest(&self.deployment).await?)
         } else {
@@ -54,17 +54,19 @@ impl CheckDivergenceCommand {
         };
 
         let start_block = match &self.start_block {
-            Some(start_block) => start_block.clone(),
+            Some(start_block) => *start_block,
             None => {
                 println!("\n{}", "Fetching start block from IPFS...".bright_cyan());
-                let block = ipfs_client.get_start_block(manifest.as_ref().unwrap()).await?;
+                let block = ipfs_client
+                    .get_start_block(manifest.as_ref().unwrap())
+                    .await?;
                 display_success(&format!("Fetched start block: {}", block));
                 block
             }
         };
 
         let end_block = match &self.end_block {
-            Some(end_block) => end_block.clone(),
+            Some(end_block) => *end_block,
             None => {
                 println!("\n{}", "Fetching network from manifest...".bright_cyan());
                 let network = ipfs_client
@@ -86,10 +88,7 @@ impl CheckDivergenceCommand {
             }
         };
 
-        display_info(
-            "Search Range",
-            &format!("{} → {}", start_block, end_block),
-        );
+        display_info("Search Range", &format!("{} → {}", start_block, end_block));
         display_info("Reference Indexer", &self.indexer);
 
         println!("\n{}", "Fetching active indexers...".bright_cyan());

@@ -25,16 +25,11 @@ impl IpfsClient {
     pub async fn get_start_block(&self, manifest: &str) -> Result<u32> {
         let re = Regex::new(r"startBlock:\s*(\d+)").unwrap();
         let start_blocks: Vec<u32> = re
-            .captures_iter(&manifest)
+            .captures_iter(manifest)
             .filter_map(|cap| cap[1].parse::<u32>().ok())
             .collect();
 
-        Ok(start_blocks
-            .iter()
-            .min()
-            .map(|min| min)
-            .unwrap_or(&0)
-            .to_owned())
+        Ok(start_blocks.iter().min().unwrap_or(&0).to_owned())
     }
 
     pub async fn get_network(&self, manifest: &str) -> Result<Option<String>> {
