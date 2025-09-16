@@ -1,6 +1,6 @@
 [package]
 name = "poipal"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Shiyas <shiyasmohd.official@gmail.com>"]
 description = "Blazing fast CLI tool for Proof of Indexing (POI) Investigations on The Graph"
