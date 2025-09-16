@@ -1,13 +1,12 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
-
-use poi_agent::commands::{CheckDivergenceCommand, PoiCommand};
+use poipal::commands::{CheckDivergenceCommand, PoiCommand};
 
 #[derive(Debug, Parser)]
 #[command(
-    name = "poi-agent",
-    author = "POI Agent",
+    name = "poipal",
+    author = "shiyasmohd",
     version = "0.1.0",
     about = "A CLI tool for managing Proof of Indexing (POI) operations on The Graph",
     long_about = "A command-line interface for fetching and comparing Proof of Indexing data \

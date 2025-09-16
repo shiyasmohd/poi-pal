@@ -1,5 +1,5 @@
 [package]
-name = "poi-agent"
+name = "poipal"
 version = "0.1.0"
 edition = "2021"
 

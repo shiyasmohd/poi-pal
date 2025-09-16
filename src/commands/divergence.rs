@@ -35,7 +35,10 @@ pub struct CheckDivergenceCommand {
         help = "Timeout for fetching POIs",
         default_value = "https://ipfs.thegraph.com"
     )]
-    ipfs_url: Option<String>,
+    ipfs_url: String,
+
+    #[arg(long, help = "Max retries for fetching POIs", default_value = "3")]
+    max_retries: u32,
 }
 
 impl CheckDivergenceCommand {
@@ -43,8 +46,7 @@ impl CheckDivergenceCommand {
         display_header("POI Divergence Checker");
         display_info("Deployment", &self.deployment);
 
-        // Fetch manifest once if we need it
-        let ipfs_url = self.ipfs_url.clone().unwrap();
+        let ipfs_url = self.ipfs_url.clone();
         let ipfs_client = IpfsClient::new(ipfs_url)?;
 
         let manifest = if self.start_block.is_none() || self.end_block.is_none() {
@@ -193,7 +195,7 @@ impl CheckDivergenceCommand {
 
         for (indexer_id, indexer) in indexers {
             match poi_client
-                .fetch_poi_with_retry(&indexer.url, &self.deployment, block, 3)
+                .fetch_poi_with_retry(&indexer.url, &self.deployment, block, self.max_retries)
                 .await
             {
                 Ok(poi) => {

@@ -25,7 +25,6 @@ pub async fn check_divergence_at_block(
         .fetch_poi_with_retry(&correct_indexer.url, deployment, block, 3)
         .await?;
 
-    // Create futures for all indexers (except the correct one)
     let fetch_futures: Vec<_> = indexers
         .iter()
         .filter(|(id, _)| *id != correct_indexer_id)
@@ -43,10 +42,8 @@ pub async fn check_divergence_at_block(
         })
         .collect();
 
-    // Execute all futures concurrently
     let results = join_all(fetch_futures).await;
 
-    // Process results to find diverged indexers
     let diverged_indexers: Vec<String> = results
         .into_iter()
         .filter_map(|(id, poi_result)| match poi_result {
