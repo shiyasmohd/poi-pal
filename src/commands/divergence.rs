@@ -2,6 +2,8 @@ use anyhow::{anyhow, Result};
 use clap::Args;
 use colored::Colorize;
 use std::collections::BTreeMap;
+use std::sync::Arc;
+use tokio::task::JoinSet;
 
 use crate::client::eth::EthClient;
 use crate::client::ipfs::IpfsClient;
@@ -129,7 +131,7 @@ impl CheckDivergenceCommand {
                 display_divergence_summary(true, Some(block), start_block, end_block);
 
                 println!("\n{}", "Fetching POIs at diverged block...".bright_cyan());
-                self.display_pois_at_block(&poi_client, &indexers, block)
+                self.display_pois_at_block(poi_client, &indexers, block)
                     .await?;
             }
             None => {
@@ -164,7 +166,7 @@ impl CheckDivergenceCommand {
             );
 
             let (has_divergence, diverged_indexers) = check_divergence_at_block(
-                poi_client,
+                poi_client.clone(),
                 indexers,
                 &self.deployment,
                 mid,
@@ -191,23 +193,43 @@ impl CheckDivergenceCommand {
 
     async fn display_pois_at_block(
         &self,
-        poi_client: &POIClient,
+        poi_client: POIClient,
         indexers: &BTreeMap<String, Indexer>,
         block: u32,
     ) -> Result<()> {
         let mut pois = Vec::new();
         let mut failed_indexers = Vec::new();
 
+        let mut tasks = JoinSet::new();
+        let poi_client = Arc::new(poi_client);
+
         for (indexer_id, indexer) in indexers {
-            match poi_client
-                .fetch_poi_with_retry(&indexer.url, &self.deployment, block, self.max_retries)
-                .await
-            {
-                Ok(poi) => {
-                    pois.push((indexer_id.clone(), poi));
-                }
+            let id = indexer_id.clone();
+            let url = indexer.url.clone();
+            let deployment = self.deployment.clone();
+            let max_retries = self.max_retries;
+            let poi_client = Arc::clone(&poi_client);
+
+            tasks.spawn(async move {
+                let poi_result = poi_client
+                    .fetch_poi_with_retry(&url, &deployment, block, max_retries)
+                    .await;
+                (id, poi_result)
+            });
+        }
+
+        while let Some(result) = tasks.join_next().await {
+            match result {
+                Ok((indexer_id, poi_result)) => match poi_result {
+                    Ok(poi) => {
+                        pois.push((indexer_id, poi));
+                    }
+                    Err(e) => {
+                        failed_indexers.push((indexer_id, e.to_string()));
+                    }
+                },
                 Err(e) => {
-                    failed_indexers.push((indexer_id.clone(), e.to_string()));
+                    failed_indexers.push(("unknown".to_string(), e.to_string()));
                 }
             }
         }
