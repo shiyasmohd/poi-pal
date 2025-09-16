@@ -9,6 +9,7 @@ pub mod ipfs;
 pub mod poi;
 pub mod registry;
 pub mod subgraph;
+pub mod update;
 
 pub async fn check_divergence_at_block(
     poi_client: &POIClient,

@@ -1,6 +1,7 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use colored::Colorize;
+use poipal::client::update::UpdateChecker;
 use poipal::commands::{CheckDivergenceCommand, PoiCommand};
 
 #[derive(Debug, Parser)]
@@ -39,6 +40,9 @@ enum Commands {
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Check for updates
+    UpdateChecker::check();
+
     let cli = Cli::parse();
 
     match cli.command {
