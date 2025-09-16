@@ -2,6 +2,12 @@
 name = "poipal"
 version = "0.1.0"
 edition = "2021"
+authors = ["Shiyas <shiyasmohd.official@gmail.com>"]
+description = "Blazing fast CLI tool for Proof of Indexing (POI) Investigations on The Graph"
+repository = "https://github.com/shiyasmohd/poi-pal"
+license = "MIT"
+keywords = ["poi","subgraph", "cli", "rust"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 anyhow = "1.0"

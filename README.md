@@ -1,7 +1,7 @@
 <div align="center" style="font-family:'Montserrat', sans-serif;">
 
 ## 🔍 PoiPal
-🚀 &nbsp;Blazing fast CLI tool for Proof of Indexing (POI) Investigations on The Graph 
+🚀 &nbsp;Blazing fast CLI tool for Proof of Indexing (POI) Investigations on The Graph
 <br/>
 <br/>
 [![Crates.io](https://img.shields.io/crates/v/poipal?style=flat-square)](https://crates.io/crates/poipal)
