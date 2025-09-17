@@ -13,7 +13,7 @@ use crate::utils::{display_error, display_header, display_info, display_pois, di
 
 #[derive(Debug, Args)]
 pub struct PoiCommand {
-    #[arg(long, help = "Deployment ID (IPFS hash)")]
+    #[arg(help = "Deployment ID (IPFS hash)")]
     deployment: String,
 
     #[arg(long, help = "Block number to fetch POI for")]

@@ -17,7 +17,7 @@ use crate::utils::{
 
 #[derive(Debug, Args)]
 pub struct CheckDivergenceCommand {
-    #[arg(long, help = "Deployment ID (IPFS hash)")]
+    #[arg(help = "Deployment ID (IPFS hash)")]
     deployment: String,
 
     #[arg(long, help = "Start block for binary search")]
