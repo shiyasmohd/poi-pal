@@ -51,11 +51,9 @@ pub async fn check_divergence_at_block(
 
     let mut diverged_indexers = Vec::new();
     while let Some(result) = tasks.join_next().await {
-        if let Ok((id, poi_result)) = result {
-            if let Ok(poi) = poi_result {
-                if poi != correct_poi {
-                    diverged_indexers.push(id);
-                }
+        if let Ok((id, Ok(poi))) = result {
+            if poi != correct_poi {
+                diverged_indexers.push(id);
             }
         }
     }
