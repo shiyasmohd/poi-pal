@@ -31,6 +31,13 @@ pub struct PoiCommand {
         default_value = "https://ipfs.thegraph.com"
     )]
     ipfs_url: String,
+
+    #[arg(
+        long,
+        help = "Indexers to include for POI fetching (check only these)",
+        value_delimiter = ','
+    )]
+    only_indexers: Option<Vec<String>>,
 }
 
 impl PoiCommand {
@@ -80,7 +87,7 @@ impl PoiCommand {
         println!("\n{}", "Fetching active indexers...".bright_cyan());
 
         let graph_client = GraphClient::new(self.api_key)?;
-        let indexers = graph_client.fetch_indexers(&self.deployment).await?;
+        let mut indexers = graph_client.fetch_indexers(&self.deployment).await?;
 
         if indexers.is_empty() {
             display_error("No active indexers found for this deployment");
@@ -88,6 +95,22 @@ impl PoiCommand {
         }
 
         display_success(&format!("Found {} active indexers", indexers.len()));
+
+        // Filter to only include specified indexers
+        if let Some(ref include_list) = self.only_indexers {
+            let initial_count = indexers.len();
+            indexers.retain(|id, _| include_list.contains(id));
+            let filtered_count = initial_count - indexers.len();
+            if filtered_count > 0 {
+                display_info("Total indexers", &format!("{}", initial_count));
+                display_info("Checking indexers", &format!("{}", indexers.len()));
+            }
+
+            if indexers.is_empty() {
+                display_error("None of the specified indexers are active for this deployment");
+                return Ok(());
+            }
+        }
 
         println!("\n{}", "Fetching POIs from indexers...".bright_cyan());
 

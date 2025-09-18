@@ -41,6 +41,13 @@ pub struct CheckDivergenceCommand {
 
     #[arg(long, help = "Max retries for fetching POIs", default_value = "3")]
     max_retries: u32,
+
+    #[arg(
+        long,
+        help = "Indexers to include for divergence check (check only these)",
+        value_delimiter = ','
+    )]
+    only_indexers: Option<Vec<String>>,
 }
 
 impl CheckDivergenceCommand {
@@ -98,7 +105,7 @@ impl CheckDivergenceCommand {
         println!("\n{}", "Fetching active indexers...".bright_cyan());
 
         let graph_client = GraphClient::new(self.api_key.clone())?;
-        let indexers = graph_client.fetch_indexers(&self.deployment).await?;
+        let mut indexers = graph_client.fetch_indexers(&self.deployment).await?;
 
         if !indexers.contains_key(&self.indexer) {
             display_error(&format!(
@@ -108,12 +115,27 @@ impl CheckDivergenceCommand {
             return Err(anyhow!("Invalid reference indexer"));
         }
 
-        if indexers.len() == 1 && indexers.contains_key(&self.indexer) {
-            display_success("Only one active indexer found, no divergence possible");
-            return Ok(());
+        display_success(&format!("Found {} active indexers", indexers.len()));
+
+        if let Some(ref include_list) = self.only_indexers {
+            let initial_count = indexers.len();
+            let mut include_list_with_ref = include_list.clone();
+
+            if !include_list_with_ref.contains(&self.indexer) {
+                include_list_with_ref.push(self.indexer.clone());
+            }
+            indexers.retain(|id, _| include_list_with_ref.contains(id));
+            let filtered_count = initial_count - indexers.len();
+            if filtered_count > 0 {
+                display_info("Total indexers", &format!("{}", initial_count));
+                display_info("Checking indexers", &format!("{}", indexers.len()));
+            }
         }
 
-        display_success(&format!("Found {} active indexers", indexers.len()));
+        if indexers.len() == 1 && indexers.contains_key(&self.indexer) {
+            display_success("Only one active indexer remaining, no divergence possible");
+            return Ok(());
+        }
 
         let poi_client = POIClient::new()?;
 
